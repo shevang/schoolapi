@@ -35,7 +35,7 @@ db.connect((err) => {
       );
     `;
 
-    connection.query(createTableQuery, (err, results) => {
+    db.query(createTableQuery, (err, results) => {
       if (err) {
         console.error('Error creating table:', err);
       } else {
