@@ -13,7 +13,7 @@ const pool = mysql.createPool({
     host: process.env.MYSQLHOST,
     user: process.env.MYSQLUSER,
     password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE,
+    database: process.env.MYSQL_DATABASE,
     port: process.env.MYSQLPORT,
     waitForConnections: true,
     connectionLimit: 10,
@@ -23,7 +23,7 @@ const pool = mysql.createPool({
 console.log('Database name is shevang--:', process.env.MYSQLDATABASE);
 console.log(process.env.MYSQLHOST);
 console.log(process.env.MYSQLUSER);
-console.log(process.env.MYSQLDATABASE);
+console.log(process.env.MYSQL_DATABASE);
 console.log(process.env.MYSQLPORT);
 
 pool.query('SELECT DATABASE()', (err, results) => {
