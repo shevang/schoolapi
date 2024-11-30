@@ -41,7 +41,7 @@ db.connect((err) => {
       } else {
         console.log('Table "schools" ensured to exist.');
       }
-      connection.end();
+      db.end();
     });
   
 });
