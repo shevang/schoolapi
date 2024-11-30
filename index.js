@@ -8,45 +8,36 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
-
-const db = mysql.createConnection({
-    host: process.env.MYSQLHOST,        
-    user: process.env.MYSQLUSER,        
-    password: process.env.MYSQLPASSWORD, 
-    database: process.env.MYSQLDATABASE, 
-    port: process.env.MYSQLPORT          
+// Create a MySQL connection pool
+const pool = mysql.createPool({
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect((err) => {
+// Ensure table exists
+pool.query(`
+  CREATE TABLE IF NOT EXISTS schools (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL
+  );
+`, (err) => {
     if (err) {
-        console.error('Error connecting to the database:', err);
-        process.exit(1);
-      } else {
-        console.log('Connected to MySQL Database');
-      }
-
-      const createTableQuery = `
-      CREATE TABLE IF NOT EXISTS schools (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        address VARCHAR(255) NOT NULL,
-        latitude FLOAT NOT NULL,
-        longitude FLOAT NOT NULL
-      );
-    `;
-
-    db.query(createTableQuery, (err, results) => {
-      if (err) {
-        console.error('Error creating table:', err);
-      } else {
+        console.error('Error ensuring table:', err);
+    } else {
         console.log('Table "schools" ensured to exist.');
-      }
-      db.end();
-    });
-  
+    }
 });
 
-
+// POST endpoint to add a school
 app.post('/addSchool', (req, res) => {
     const { name, address, latitude, longitude } = req.body;
 
@@ -55,15 +46,17 @@ app.post('/addSchool', (req, res) => {
     }
 
     const sql = 'INSERT INTO schools (name, address, latitude, longitude) VALUES (?, ?, ?, ?)';
-    db.query(sql, [name, address, latitude, longitude], (err, result) => {
-        if (err) throw err;
+    pool.query(sql, [name, address, latitude, longitude], (err, result) => {
+        if (err) {
+            console.error('Error inserting school:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
         res.status(201).json({ message: 'School added successfully', schoolId: result.insertId });
     });
 });
 
-
+// GET endpoint to list schools sorted by distance
 app.get('/listSchools', (req, res) => {
-
     const userLat = parseFloat(req.query.latitude);
     const userLon = parseFloat(req.query.longitude);
 
@@ -72,8 +65,11 @@ app.get('/listSchools', (req, res) => {
     }
 
     const sql = 'SELECT * FROM schools';
-    db.query(sql, (err, results) => {
-        if (err) throw err;
+    pool.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching schools:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
 
         const sortedSchools = results.map(school => ({
             ...school,
@@ -84,6 +80,6 @@ app.get('/listSchools', (req, res) => {
     });
 });
 
-
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
