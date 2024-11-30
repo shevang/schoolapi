@@ -20,6 +20,8 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
+console.log('Database name is shevang--:', process.env.MYSQLDATABASE);
+
 pool.query('SELECT DATABASE()', (err, results) => {
     if (err) {
         console.error('Error verifying database selection:', err);
