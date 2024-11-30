@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
-// Create a MySQL connection pool
+
 const pool = mysql.createPool({
     host: process.env.MYSQLHOST,
     user: process.env.MYSQLUSER,
@@ -20,7 +20,16 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Ensure table exists
+pool.query('SELECT DATABASE()', (err, results) => {
+    if (err) {
+        console.error('Error verifying database selection:', err);
+    } else {
+        console.log('Currently selected database:', results[0]['DATABASE()']);
+    }
+});
+
+
+
 pool.query(`
   CREATE TABLE IF NOT EXISTS schools (
     id INT AUTO_INCREMENT PRIMARY KEY,
