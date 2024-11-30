@@ -21,6 +21,10 @@ const pool = mysql.createPool({
 });
 
 console.log('Database name is shevang--:', process.env.MYSQLDATABASE);
+console.log(process.env.MYSQLHOST);
+console.log(process.env.MYSQLUSER);
+console.log(process.env.MYSQLDATABASE);
+console.log(process.env.MYSQLPORT);
 
 pool.query('SELECT DATABASE()', (err, results) => {
     if (err) {
